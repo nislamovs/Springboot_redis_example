@@ -1,0 +1,72 @@
+plugins {
+	id 'application'
+	id 'org.springframework.boot' version '2.5.4'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'com.palantir.docker' version '0.25.0'
+	id 'com.palantir.docker-run' version '0.25.0'
+	id 'java'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '15'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	implementation ('org.springframework.boot:spring-boot-starter-data-redis') {
+		exclude group: 'io.lettuce', module: 'lettuce-core'
+	}
+	implementation 'redis.clients:jedis'
+
+	implementation 'com.github.javafaker:javafaker:0.12'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	implementation "org.mapstruct:mapstruct:1.4.2.Final"
+	annotationProcessor "org.mapstruct:mapstruct-processor:1.4.2.Final"
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+test {
+	useJUnitPlatform()
+}
+
+bootJar {
+	archiveBaseName = 'redisExample'
+	archiveVersion =  '1.0.0'
+}
+
+task unpack(type: Copy) {
+	dependsOn bootJar
+	from(zipTree("build/libs/redisExample-1.0.0.jar"))
+	into("build/dependency")
+}
+
+docker {
+	name "msg_producer"
+//	files "build/libs/${bootJar.archiveFileName.get()}"
+//	buildArgs([JAR_FILE: bootJar.archiveFileName.get()])
+	copySpec.from(tasks.unpack.outputs).into("dependency")
+	buildArgs(['DEPENDENCY': "dependency"])
+}
+
+dockerRun {
+	name  "redisExample"
+	image "redisExample-1.0.0"
+	ports '8080:8080'
+	clean true
+}

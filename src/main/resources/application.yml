@@ -1,0 +1,13 @@
+server:
+  port: 8080
+
+spring:
+  redis:
+    url: redis://localhost:6379
+    database: 0
+    username: admin
+    password: admin
+    jedis:
+      pool:
+        max-active: 8
+        max-idle: 8

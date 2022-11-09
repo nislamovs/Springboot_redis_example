@@ -1,0 +1,10 @@
+setup docker/gradle
+
+Create find all for spring data
+Create find all for redisTemplate
+
+try match
+try scan
+
+tests (testContainers, unit/mocks)
+
